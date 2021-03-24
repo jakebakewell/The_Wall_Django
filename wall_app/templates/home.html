@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wall</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/home_style.css' %}">
+</head>
+
+<body>
+    <div class="header d-flex justify-content-around pt-3 pb-3">
+        <h1>The Wall</h1>
+        <p>Welcome, {{ user.first_name }} {{ user.last_name }}!</p>
+        <a href="/the_wall/log_out" class="btn btn-danger log-out">Log Out</a>
+    </div>
+    <div>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            {% if message.extra_tags == 'message' %}
+            <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <form action="/the_wall/process_message" method="post" class="container d-flex flex-column">
+            {% csrf_token %}
+            <label for="message" class="form-label post_a_message">Post a Message</label>
+            <textarea name="message" id="message" cols="30" rows="10" class="form-control"></textarea>
+            <button type="submit" class="btn btn-primary post-btn">Post Message</button>
+        </form>
+    </div>
+    <div class="container">
+        <h3 class="text-center mt-5 mb-3">Message Board</h3>
+        <div class="bg-light p-3">
+            {% for message in all_messages reversed %}
+            <div class="message-header">
+                <h6>{{ message.user.first_name }} {{ message.user.last_name }} - {{ message.created_at }}</h6>
+                <a href="/the_wall/delete_message/{{ message.id }}" class="btn btn-danger">Delete Message</a>
+            </div>
+            <p class="message">{{ message.content }}</p>
+            {% for comment in all_comments %}
+            {% if comment.message.id == message.id %}
+            <h6 class="message-comments">{{ comment.user.first_name }} {{ comment.user.last_name }} - {{ comment.created_at }}</h6>
+            <p class="message-comments">{{ comment.content }}</p>
+            {% endif %}
+            {% endfor %}
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                {% if message.extra_tags == 'comment' %}
+                <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <form action="/the_wall/process_comment" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="which_message" value="{{ message.id }}">
+                <label for="comment" class="form-label post_comment_label">Post a Comment</label>
+                <textarea name="comment" id="comment" cols="21" rows="7" class="form-control"></textarea>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary mt-3 mb-5 post-btn">Post Comment</button>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
